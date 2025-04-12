@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Food Orders</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 1rem;
+      background-color: #fff;
+      color: #000;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 1rem;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.5rem;
+      text-align: left;
+    }
+    input[type="text"], select {
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .paid-row {
+      background-color: #d0f5d0;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+    }
+
+    /* Dark mode styles */
+    body.dark-mode {
+      background-color: #121212;
+      color: #e0e0e0;
+    }
+    body.dark-mode table {
+      border-color: #555;
+    }
+    body.dark-mode th, body.dark-mode td {
+      border: 1px solid #555;
+    }
+    body.dark-mode .paid-row {
+      background-color: #2e7d32;
+    }
+    body.dark-mode input, body.dark-mode select {
+      background-color: #1e1e1e;
+      color: #e0e0e0;
+      border: 1px solid #444;
+    }
+    #toggleDarkMode {
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <button id="toggleDarkMode">🌙 Toggle Dark Mode</button>
+  <h1>Order Tracker</h1>
+  <table id="ordersTable">
+    <thead>
+      <tr>
+        <th>Person</th>
+        <th>Order</th>
+        <th>Extras</th>
+        <th>Price</th>
+        <th>Paid</th>
+        <th>Kontant</th>
+        <th>Remove</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <button onclick="addRow()">Add Order</button>
+
+  <script>
+    const menuItems = {
+      "1-Margarita ost": 105,
+      "2-Vesuvio skinka": 105,
+      "3-Calzone (inbakad) skinka": 105,
+      "4-Pescatore tonfisk": 105,
+      "5-Fungi färska champinjoner": 105,
+      "6-Cappricciosa skinka, färska champinjoner": 110,
+      "7-Hawaii skinka, ananas": 110,
+      "8-Bolognese köttfärs": 110,
+      "9-Africana ananas, banan, curry": 110,
+      "10-Vegeteriana färska champinjoner, färsk paprika, rödlök,sparis, kronärtskockor": 120,
+      "11-Caruso salami, färsk paprika, rödlök": 120,
+      "12-La Maffia stekt bacon, färsk paprika, rödlök": 120,
+      "13-Mamma mia skinka, färska champinjoner, räkor": 120,
+      "14-Tomasso skinka, räkor": 120,
+      "15-Ciao Ciao (inbakad) fläskfilé, färska champinjoner, kapris, vitlök": 120,
+      "16-Napolitano sardeller, oliver, vitlök, kapris": 120,
+      "17-Quattro Stagione skinka, färska champinjoner, räkor, musslor": 120,
+      "18-Opera skinka, stekt bacon, ägg": 120,
+      "19-Gyrospizza gyros, fefferoni, valfri sås": 120,
+      "20-Kebabpizza kebab, fefferoni, valfri sås": 120,
+      "21-Kycklingpizza kyckling, fefferoni, valfri sås": 120,
+      "22-Arena färska champinjoner, oxfilé,sparis, bearnaisesås": 125,
+      "23-Cacciatore gorgonzola, räkor, musslor": 125,
+      "24-Gudfader skinka, tonfisk, oliver, färsk paprika, kapris, spansk peppar": 125,
+      "25-Piri Piri köttfärs, paprika, lök, chilli, spansk peppar, champinjoner": 125,
+      "26-Formaggio 4 sorters ostar": 125,
+      "27-Chicken kyckling, paprika, banan, jordnötter, curry, bearnaisesås": 125,
+      "28-Husetsspecial skinka, gyros eller kebab, fefferoni, valfri sås": 125,
+      "29-Blekan fläskfilé, färska champinjoner, bearnaisesås, färsk paprika, rödlök": 130,
+      "30-Parma mozzarella, ruccola, prosciutto, färska tomater": 130,
+      "31-Kantareller fläskfilé,paprika,kantareller,lök,bearnaisesås": 130,
+      "32-El Dorado fläskfilé, paprika, stekt bacon, tomat, vitlöksost": 130,
+      "33-Gorgonzola skinka, oxfilé, gorgonzolaost, sparis,tomater, oliver, lök": 130,
+      "34-Black & white fläskfilé, oxfilé, färska champinjoner, bearnaisesås": 130,
+      "35-Gyrospizza-special gyros, sallad, valfrisås": 130,
+      "36-Kebabpizza-special kebab, sallad, valfrisås": 130,
+      "37-Viking special (båtpizza) kebab eller gyros, sallad, valfri sås": 130,
+      "38-Halva halva 1/2 gyros, 1/2 kebab, vitlöksost, lök, fefferoni, pommes, valfri sås": 130,
+      "39-Fest-Pizza kebab eller gyros, pommes, fefferoni, valfri sås": 130,
+      "40-Castello prosciutto, kantareller, soltorkad tomat, vitlöksost, olivolja, ruccola": 140,
+      "41-Polo pepperoni marinerad kyckling, grillad paprika, körsbärstomat, vitlöksost, ruccola": 140,
+      "42-Filé oxfilé, fläskfilé, soltorkad tomat, vitlöksost, ruccola": 140,
+      "43-Cosa nostra oxfilé, fläskfilé, grillad nötfärs, vitlöksost, ruccola": 140,
+      "44-Havet tonfisk,marinerade tigerräkor,gröna musslor,vitlöksöst,ruccola": 140,
+      "45-PEPPERONI panpizza": 159,
+      "46-NIVADA panpizza": 159,
+      "47-TACOPIZZA panpizza": 159,
+      "RÄKSALLAD": 120,
+      "KEBAB- ELLER GYROSSALLAD": 120,
+      "KYCKLINGSALLAD": 120,
+      "TONFISKSALLAD": 120,
+      "HAWAII SALLAD": 120,
+      "KEBAB tallrik": 120,
+      "GYROS tallrik": 120,
+      "KYCKLING tallrik": 120,
+      "CHICKEN NUGGETS tallrik": 120,
+      "VEGETARISK tallrik": 120,
+      "FALAFEL tallrik": 120,
+      "KEBAB rulle": 115,
+      "GYROS rulle": 115,
+      "KYCKLING rulle": 115,
+      "FALAFEL rulle": 115,
+      "VIKINGRULLE": 100,
+      "KEBAB pita": 110,
+      "GYROS pita": 110,
+      "KYCKLING pita": 110,
+      "FALAFEL pita": 110,
+      "HUSETS BURGARE": 150,
+      "HALOUMI BURGARE": 140,
+      "PASTA BOLOGNAISE": 120,
+      "PASTA CARBONARA": 130,
+      "Hallomi pasta med pesto": 140,
+      "Skaldjurpasta": 160
+    };
+
+    function addRow(data = {}) {
+      const tbody = document.querySelector("#ordersTable tbody");
+      const row = tbody.insertRow();
+
+      const personTd = row.insertCell();
+      personTd.innerHTML = `<input type="text" value="${data.person || ''}" onchange="saveData()">`;
+
+      const orderTd = row.insertCell();
+      const select = document.createElement("select");
+      const emptyOption = document.createElement("option");
+      emptyOption.value = "";
+      emptyOption.textContent = "";
+      select.appendChild(emptyOption);
+
+      for (const [item, price] of Object.entries(menuItems)) {
+        const option = document.createElement("option");
+        option.value = item;
+        option.textContent = item;
+        if (item === data.order) option.selected = true;
+        select.appendChild(option);
+      }
+
+      select.onchange = function () {
+        priceTd.querySelector("input").value = menuItems[select.value] || '';
+        saveData();
+      };
+
+      orderTd.appendChild(select);
+
+      const extrasTd = row.insertCell();
+      extrasTd.innerHTML = `<input type="text" value="${data.extras || ''}" onchange="saveData()">`;
+
+      const priceTd = row.insertCell();
+      priceTd.innerHTML = `<input type="text" value="${data.price || ''}" readonly>`;
+
+      const paidTd = row.insertCell();
+      const paidCheckbox = document.createElement("input");
+      paidCheckbox.type = "checkbox";
+      paidCheckbox.checked = data.paid || false;
+      paidCheckbox.onchange = function () {
+        row.classList.toggle("paid-row", this.checked);
+        saveData();
+      };
+      paidTd.appendChild(paidCheckbox);
+      if (paidCheckbox.checked) row.classList.add("paid-row");
+
+      const cashId = row.insertCell();
+      const cashCheckbox = document.createElement("input");
+      cashCheckbox.type = "checkbox";
+      cashCheckbox.checked = data.cash || false;
+      cashCheckbox.onchange = function () {
+        saveData();
+      };
+      cashId.appendChild(cashCheckbox);
+
+      const removeTd = row.insertCell();
+      const removeBtn = document.createElement("button");
+      removeBtn.textContent = "❌";
+      removeBtn.onclick = function () {
+        row.remove();
+        saveData();
+      };
+      removeTd.appendChild(removeBtn);
+    }
+
+    function saveData() {
+      const data = [];
+      const rows = document.querySelectorAll("#ordersTable tbody tr");
+      rows.forEach(row => {
+        const cells = row.children;
+        data.push({
+          person: cells[0].querySelector("input").value,
+          order: cells[1].querySelector("select").value,
+          extras: cells[2].querySelector("input").value,
+          price: cells[3].querySelector("input").value,
+          paid: cells[4].querySelector("input").checked,
+          cash: cells[5].querySelector("input").checked
+        });
+      });
+      localStorage.setItem("foodOrders", JSON.stringify(data));
+    }
+
+    function loadData() {
+      const saved = localStorage.getItem("foodOrders");
+      if (saved) {
+        const data = JSON.parse(saved);
+        data.forEach(row => addRow(row));
+      }
+    }
+
+    function setupDarkModeToggle() {
+      const button = document.getElementById('toggleDarkMode');
+      button.addEventListener('click', () => {
+        document.body.classList.toggle('dark-mode');
+        localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+      });
+
+      // On load
+      const isDark = localStorage.getItem('darkMode') === 'true';
+      if (isDark) {
+        document.body.classList.add('dark-mode');
+      }
+    }
+
+    window.onload = function () {
+      loadData();
+      setupDarkModeToggle();
+    };
+  </script>
+</body>
+</html>
